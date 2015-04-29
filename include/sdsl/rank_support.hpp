@@ -281,6 +281,142 @@ struct rank_support_trait<11,2> {
     }
 };
 
+// this section is for dna alphabet trait_types
+#define SDSL_WT_DNA_TYPE_A 100
+#define SDSL_WT_DNA_TYPE_C 101
+#define SDSL_WT_DNA_TYPE_G 110
+#define SDSL_WT_DNA_TYPE_T 111
+
+template<>
+struct rank_support_trait<SDSL_WT_DNA_TYPE_A,2> {
+    typedef rank_support::size_type	size_type;
+
+    // count all aligned occurences of 00 in w
+    static size_type args_in_the_word(uint64_t w, uint64_t&)
+    {
+        size_type res = bits::cnt((~w & ((~w) >> 1)) & 0x5555555555555555);
+        return res;
+    }
+
+    // count all occurences of 00 in data at idx/64 up to idx mod 64
+    static uint32_t word_rank(const uint64_t* data, size_type idx)
+    {
+        data = data+(idx>>6);
+        return bits::cnt(((~(*data) & ((~(*data)) >> 1)) & 0x5555555555555555) & bits::lo_set[idx&0x3F]);
+    }
+
+    // count all occurences of 00 in data at idx/64
+    static uint32_t full_word_rank(const uint64_t* data, size_type idx)
+    {
+        data = data+(idx>>6);
+        return bits::cnt((~(*data) & ((~(*data)) >> 1)) & 0x5555555555555555);
+    }
+
+    static uint64_t init_carry()
+    {
+        return 0;
+    }
+};
+
+template<>
+struct rank_support_trait<SDSL_WT_DNA_TYPE_G,2> {
+    typedef rank_support::size_type	size_type;
+
+    // count all aligned occurences of 01 in w
+    static size_type args_in_the_word(uint64_t w, uint64_t&)
+    {
+	uint64_t x = w ^ 0xaaaaaaaaaaaaaaaa;
+        size_type res = bits::cnt((x & (x >> 1)) & 0x5555555555555555);
+        return res;
+    }
+
+    // count all occurences of 01 in data at idx/64 up to idx mod 64
+    static uint32_t word_rank(const uint64_t* data, size_type idx)
+    {
+        data = data+(idx>>6);
+	uint64_t x = (*data) ^ 0xaaaaaaaaaaaaaaaa;
+        return bits::cnt(((x & (x >> 1)) & 0x5555555555555555) & bits::lo_set[idx&0x3F]);
+    }
+
+    // count all occurences of 01 in data at idx/64
+    static uint32_t full_word_rank(const uint64_t* data, size_type idx)
+    {
+        data = data+(idx>>6);
+	uint64_t x = (*data) ^ 0xaaaaaaaaaaaaaaaa;
+        return bits::cnt((x & (x >> 1)) & 0x5555555555555555);
+    }
+
+    static uint64_t init_carry()
+    {
+        return 0;
+    }
+};
+
+template<>
+struct rank_support_trait<SDSL_WT_DNA_TYPE_C,2> {
+    typedef rank_support::size_type	size_type;
+
+    // count all aligned occurences of 10 in w
+    static size_type args_in_the_word(uint64_t w, uint64_t&)
+    {
+	uint64_t x = w ^ 0x5555555555555555;
+        size_type res = bits::cnt((x & (x >> 1)) & 0x5555555555555555);
+        return res;
+    }
+
+    // count all occurences of 10 in data at idx/64 up to idx mod 64
+    static uint32_t word_rank(const uint64_t* data, size_type idx)
+    {
+        data = data+(idx>>6);
+	uint64_t x = (*data) ^ 0x5555555555555555;
+        return bits::cnt(((x & (x >> 1)) & 0x5555555555555555) & bits::lo_set[idx&0x3F]);
+    }
+
+    // count all occurences of 10 in data at idx/64
+    static uint32_t full_word_rank(const uint64_t* data, size_type idx)
+    {
+        data = data+(idx>>6);
+	uint64_t x = (*data) ^ 0x5555555555555555;
+        return bits::cnt((x & (x >> 1)) & 0x5555555555555555);
+    }
+
+    static uint64_t init_carry()
+    {
+        return 0;
+    }
+};
+
+template<>
+struct rank_support_trait<SDSL_WT_DNA_TYPE_T,2> {
+    typedef rank_support::size_type	size_type;
+
+    // count all aligned occurences of 11 in w
+    static size_type args_in_the_word(uint64_t w, uint64_t&)
+    {
+        size_type res = bits::cnt((w & (w >> 1)) & 0x5555555555555555);
+        return res;
+    }
+
+    // count all occurences of 11 in data at idx/64 up to idx mod 64
+    static uint32_t word_rank(const uint64_t* data, size_type idx)
+    {
+        data = data+(idx>>6);
+        return bits::cnt((((*data) & ((*data) >> 1)) & 0x5555555555555555) & bits::lo_set[idx&0x3F]);
+    }
+
+    // count all occurences of 11 in data at idx/64
+    static uint32_t full_word_rank(const uint64_t* data, size_type idx)
+    {
+        data = data+(idx>>6);
+        return bits::cnt(((*data) & ((*data) >> 1)) & 0x5555555555555555);
+    }
+
+    static uint64_t init_carry()
+    {
+        return 0;
+    }
+};
+
 }// end namespace sdsl
 
 #include "rank_support_v.hpp"

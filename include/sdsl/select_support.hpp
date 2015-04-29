@@ -398,6 +398,252 @@ struct select_support_trait<11,2> {
     }
 };
 
+// this section is to find aligned occurences of bit-patterns
+// the typedefinitions are in rank_support.hpp
+template<>
+struct select_support_trait<SDSL_WT_DNA_TYPE_A,2> {
+    typedef select_support::size_type	size_type;
+
+    static size_type arg_cnt(const bit_vector& v)
+    {
+        const uint64_t* data = v.data();
+        if (v.empty())
+            return 0;
+        uint64_t carry = rank_support_trait<SDSL_WT_DNA_TYPE_A,2>::init_carry();
+        size_type result = 0;
+        for (auto end = v.data() + (v.size() >> 6); data < end; ++data) {
+            result += rank_support_trait<SDSL_WT_DNA_TYPE_A,2>::args_in_the_word(*data, carry);
+        }
+        if (v.bit_size()&0x3F) {   // if bit_size is not a multiple of 64, add count of the last word
+            result += rank_support_trait<SDSL_WT_DNA_TYPE_A,2>::args_in_the_word((*data)&bits::lo_set[v.bit_size()&0x3F], carry);
+        }
+        return result;
+    }
+
+    static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t carry)
+    {
+        size_type res = 0;
+        if (offset == 0)
+            res = rank_support_trait<SDSL_WT_DNA_TYPE_A,2>::args_in_the_word(w, carry);
+        else {
+            uint64_t x = (~w) >> offset;
+            res = bits::cnt((x & (x >> 1)) & 0x5555555555555555);
+        }
+        return res;
+    }
+
+    static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t)
+    {
+        return bits::sel(((~w & (~w >> 1)) & 0x5555555555555555) & bits::lo_unset[offset], i);
+    }
+    static size_type args_in_the_word(uint64_t w, uint64_t& carry)
+    {
+        return rank_support_trait<SDSL_WT_DNA_TYPE_A,2>::args_in_the_word(w, carry);
+    }
+    static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t)
+    {
+        return bits::sel(((~w & (~w >> 1)) & 0x5555555555555555), i);
+    }
+    static bool found_arg(size_type i, const bit_vector& v)
+    {
+        if (i > 0 and (i % 2) == 1 and !v[i-1] and !v[i])
+            return true;
+        return false;
+    }
+    static uint64_t init_carry(const uint64_t*, size_type)
+    {
+        return 0;
+    }
+    static uint64_t get_carry(uint64_t)
+    {
+        return 0;
+    }
+};
+
+template<>
+struct select_support_trait<SDSL_WT_DNA_TYPE_G,2> {
+    typedef select_support::size_type	size_type;
+
+    static size_type arg_cnt(const bit_vector& v)
+    {
+        const uint64_t* data = v.data();
+        if (v.empty())
+            return 0;
+        uint64_t carry = rank_support_trait<SDSL_WT_DNA_TYPE_G,2>::init_carry();
+        size_type result = 0;
+        for (auto end = v.data() + (v.size() >> 6); data < end; ++data) {
+            result += rank_support_trait<SDSL_WT_DNA_TYPE_G,2>::args_in_the_word(*data, carry);
+        }
+        if (v.bit_size()&0x3F) {   // if bit_size is not a multiple of 64, add count of the last word
+            result += rank_support_trait<SDSL_WT_DNA_TYPE_G,2>::args_in_the_word((*data)&bits::lo_set[v.bit_size()&0x3F], carry);
+        }
+        return result;
+    }
+
+    static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t carry)
+    {
+        size_type res = 0;
+        if (offset == 0)
+            res = rank_support_trait<SDSL_WT_DNA_TYPE_G,2>::args_in_the_word(w, carry);
+        else {
+            uint64_t x = (w ^ 0xaaaaaaaaaaaaaaaa) >> offset;
+            res = bits::cnt((x & (x >> 1)) & 0x5555555555555555);
+        }
+        return res;
+    }
+
+    static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t)
+    {
+        uint64_t x = w ^ 0xaaaaaaaaaaaaaaaa;
+        return bits::sel(((x & (x >> 1)) & 0x5555555555555555) & bits::lo_unset[offset], i);
+    }
+    static size_type args_in_the_word(uint64_t w, uint64_t& carry)
+    {
+        return rank_support_trait<SDSL_WT_DNA_TYPE_G,2>::args_in_the_word(w, carry);
+    }
+    static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t)
+    {
+        uint64_t x = w ^ 0xaaaaaaaaaaaaaaaa;
+        return bits::sel(((x & (x >> 1)) & 0x5555555555555555), i);
+    }
+    static bool found_arg(size_type i, const bit_vector& v)
+    {
+        if (i > 0 and (i % 2) == 1 and !v[i-1] and v[i])
+            return true;
+        return false;
+    }
+    static uint64_t init_carry(const uint64_t*, size_type)
+    {
+        return 0;
+    }
+    static uint64_t get_carry(uint64_t)
+    {
+        return 0;
+    }
+};
+
+template<>
+struct select_support_trait<SDSL_WT_DNA_TYPE_C,2> {
+    typedef select_support::size_type	size_type;
+
+    static size_type arg_cnt(const bit_vector& v)
+    {
+        const uint64_t* data = v.data();
+        if (v.empty())
+            return 0;
+        uint64_t carry = rank_support_trait<SDSL_WT_DNA_TYPE_C,2>::init_carry();
+        size_type result = 0;
+        for (auto end = v.data() + (v.size() >> 6); data < end; ++data) {
+            result += rank_support_trait<SDSL_WT_DNA_TYPE_C,2>::args_in_the_word(*data, carry);
+        }
+        if (v.bit_size()&0x3F) {   // if bit_size is not a multiple of 64, add count of the last word
+            result += rank_support_trait<SDSL_WT_DNA_TYPE_C,2>::args_in_the_word((*data)&bits::lo_set[v.bit_size()&0x3F], carry);
+        }
+        return result;
+    }
+
+    static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t carry)
+    {
+        size_type res = 0;
+        if (offset == 0)
+            res = rank_support_trait<SDSL_WT_DNA_TYPE_C,2>::args_in_the_word(w, carry);
+        else {
+            uint64_t x = (w ^ 0x5555555555555555) >> offset;
+            res = bits::cnt((x & (x >> 1)) & 0x5555555555555555);
+        }
+        return res;
+    }
+
+    static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t)
+    {
+        uint64_t x = w ^ 0x5555555555555555;
+        return bits::sel(((x & (x >> 1)) & 0x5555555555555555) & bits::lo_unset[offset], i);
+    }
+    static size_type args_in_the_word(uint64_t w, uint64_t& carry)
+    {
+        return rank_support_trait<SDSL_WT_DNA_TYPE_C,2>::args_in_the_word(w, carry);
+    }
+    static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t)
+    {
+        uint64_t x = w ^ 0x5555555555555555;
+        return bits::sel(((x & (x >> 1)) & 0x5555555555555555), i);
+    }
+    static bool found_arg(size_type i, const bit_vector& v)
+    {
+        if (i > 0 and (i % 2) == 1 and v[i-1] and !v[i])
+            return true;
+        return false;
+    }
+    static uint64_t init_carry(const uint64_t*, size_type)
+    {
+        return 0;
+    }
+    static uint64_t get_carry(uint64_t)
+    {
+        return 0;
+    }
+};
+
+template<>
+struct select_support_trait<SDSL_WT_DNA_TYPE_T,2> {
+    typedef select_support::size_type	size_type;
+
+    static size_type arg_cnt(const bit_vector& v)
+    {
+        const uint64_t* data = v.data();
+        if (v.empty())
+            return 0;
+        uint64_t carry = rank_support_trait<SDSL_WT_DNA_TYPE_T,2>::init_carry();
+        size_type result = 0;
+        for (auto end = v.data() + (v.size() >> 6); data < end; ++data) {
+            result += rank_support_trait<SDSL_WT_DNA_TYPE_T,2>::args_in_the_word(*data, carry);
+        }
+        if (v.bit_size()&0x3F) {   // if bit_size is not a multiple of 64, add count of the last word
+            result += rank_support_trait<SDSL_WT_DNA_TYPE_T,2>::args_in_the_word((*data)&bits::lo_set[v.bit_size()&0x3F], carry);
+        }
+        return result;
+    }
+
+    static size_type args_in_the_first_word(uint64_t w, uint8_t offset, uint64_t carry)
+    {
+        size_type res = 0;
+        if (offset == 0)
+            res = rank_support_trait<SDSL_WT_DNA_TYPE_T,2>::args_in_the_word(w, carry);
+        else {
+            uint64_t x = w >> offset;
+            res = bits::cnt((x & (x >> 1)) & 0x5555555555555555);
+        }
+        return res;
+    }
+
+    static size_type ith_arg_pos_in_the_first_word(uint64_t w, size_type i, uint8_t offset, uint64_t)
+    {
+        return bits::sel(((w & (w >> 1)) & 0x5555555555555555) & bits::lo_unset[offset], i);
+    }
+    static size_type args_in_the_word(uint64_t w, uint64_t& carry)
+    {
+        return rank_support_trait<SDSL_WT_DNA_TYPE_T,2>::args_in_the_word(w, carry);
+    }
+    static size_type ith_arg_pos_in_the_word(uint64_t w, size_type i, uint64_t)
+    {
+        return bits::sel(((w & (w >> 1)) & 0x5555555555555555), i);
+    }
+    static bool found_arg(size_type i, const bit_vector& v)
+    {
+        if (i > 0 and (i % 2) == 1 and v[i-1] and v[i])
+            return true;
+        return false;
+    }
+    static uint64_t init_carry(const uint64_t*, size_type)
+    {
+        return 0;
+    }
+    static uint64_t get_carry(uint64_t)
+    {
+        return 0;
+    }
+};
+
 } // end namespace sdsl
 
 #include "select_support_mcl.hpp"
