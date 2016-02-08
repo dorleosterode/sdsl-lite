@@ -38,6 +38,7 @@
 #include "wm_int.hpp"
 #include "wt_rlmn.hpp"
 #include "wt_dna.hpp"
+#include "wt_dna_il.hpp"
 #include "construct.hpp"
 #include "wt_algorithm.hpp"
 

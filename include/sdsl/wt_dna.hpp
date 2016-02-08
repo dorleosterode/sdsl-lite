@@ -61,6 +61,10 @@ class wt_dna
         typedef wt_tag index_category;
         typedef random_access_const_iterator<wt_dna> const_iterator;
         typedef byte_alphabet_tag alphabet_category;
+        typedef std::tuple<size_type, size_type, size_type> t_ret_type3;
+        typedef std::tuple<size_type, size_type> t_ret_type2;
+
+        enum { lex_ordered = 1 };
 
     private:
         // the private variables
@@ -242,6 +246,8 @@ class wt_dna
                     std::cout << "wrong char " << (unsigned int)c << "\n";
                     assert(!"reached");
             }
+
+            return 0;
         }
 
         //! Calculates how many occurrences of symbol input[i] are in the prefix [0..i-1] of the original input.
@@ -287,6 +293,89 @@ class wt_dna
                 default:
                     assert(!"reached");
             }
+
+            return 0;
+        }
+
+        //! How many symbols are lexicographic smaller/greater than c in [i..j-1].
+        /*!
+         * \param i       Start index (inclusive) of the interval.
+         * \param j       End index (exclusive) of the interval.
+         * \param c       Symbol c.
+         * \return A triple containing:
+         *         * rank(i,c)
+         *         * #symbols smaller than c in [i..j-1]
+         *         * #symbols greater than c in [i..j-1]
+         *
+         * \par Precondition
+         *       \f$ i \leq j \leq size() \f$
+         */
+        t_ret_type3 lex_count(size_type i, size_type j, value_type c) const
+        {
+            assert(i <= j and j <= size());
+            size_type a_lb = rank(i, 0); // TODO: i or i+1?
+            size_type c_lb = rank(i, 1);
+            size_type g_lb = rank(i, 2);
+            size_type t_lb = rank(i, 3);
+            size_type a_rb = rank(j, 0);
+            size_type c_rb = rank(j, 1);
+            size_type g_rb = rank(j, 2);
+            size_type t_rb = rank(j, 3);
+            size_type smaller, greater;
+            switch (c) {
+                case 0:
+                    smaller = 0;
+                    greater = (c_rb - c_lb) + (g_rb - g_lb) + (t_rb - t_lb);
+                    return t_ret_type3 {a_lb, smaller, greater};
+                case 1:
+                    smaller = (a_rb - a_lb);
+                    greater = (g_rb - g_lb) + (t_rb - t_lb);
+                    return t_ret_type3 {c_lb, smaller, greater};
+                case 2:
+                    smaller = (a_rb - a_lb) + (c_rb - c_lb);
+                    greater = (t_rb - t_lb);
+                    return t_ret_type3 {g_lb, smaller, greater};
+                case 3:
+                    smaller = (a_rb - a_lb) + (c_rb - c_lb) + (g_rb - g_lb);
+                    greater = 0;
+                    return t_ret_type3 {t_lb, smaller, greater};
+                default:
+                    std::cout << "wrong char " << (unsigned int)c << "\n";
+                    assert(!"reached");
+            }
+            return t_ret_type3 {0, 0, 0};
+        };
+
+        //! How many symbols are lexicographic smaller than c in [0..i-1].
+        /*!
+         * \param i Exclusive right bound of the range.
+         * \param c Symbol c.
+         * \return A tuple containing:
+         *         * rank(i,c)
+         *         * #symbols smaller than c in [0..i-1]
+         * \par Precondition
+         *       \f$ i \leq size() \f$
+         * \note
+         * This method is only available if lex_ordered = true
+         */
+        t_ret_type2 lex_smaller_count(size_type i, value_type c)const
+        {
+            assert(i <= size());
+            switch (c) {
+                case 0:
+                    return t_ret_type2 {rank(i, c), 0};
+                case 1:
+                    return t_ret_type2 {rank(i, c), rank(i, 0)};
+                case 2:
+                    return t_ret_type2 {rank(i, c), rank(i, 0) + rank(i, 1)};
+                case 3:
+                    return t_ret_type2 {rank(i, c), rank(i, 0) + rank(i, 1) + rank(i, 2)};
+                default:
+                    std::cout << "wrong char " << (unsigned int)c << "\n";
+                    assert(!"reached");
+            }
+
+            return t_ret_type2 {0, 0};
         }
 
         //! Returns a const_iterator to the first element.
